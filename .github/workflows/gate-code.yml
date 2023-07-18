@@ -1,0 +1,48 @@
+name: Code Gating
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    runs-on: ubuntu-latest      
+    steps:
+      - uses: taiki-e/install-action@just
+      - uses: taiki-e/install-action@grcov
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::201893381538:role/GitHubRole
+          role-session-name: GitHubActionsSession
+      - uses: actions/checkout@v3
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: llvm-tools-preview, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Gate
+        run: just gate
+      - name: Collect code coverage
+        run: just code-coverage
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: "target/cov.lcov"
+          token: ${{ secrets.CODECOV_TOKEN }}
+   
+    

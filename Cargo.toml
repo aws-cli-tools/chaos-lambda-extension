@@ -1,0 +1,27 @@
+[package]
+name = "whoamiaws"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.71"
+async-trait = "0.1.68"
+aws-config = { version = "0.55.3", default-features = false, features = ["rustls"] }
+aws-sdk-sts = "0.28.0"
+aws-types = "0.55.3"
+clap = { version = "4.3.9", features = ["derive"] }
+env_logger = "0.10.0"
+log = "0.4.19"
+mockall = "0.11.4"
+serde_json = "1.0.99"
+tokio = { version = "1.29.0", features = ["full"] }
+
+[dev-dependencies]
+assert_cmd = "2.0.11"
+predicates = "3.0.3"
+rand = "0.8.5"
+rstest = "0.17.0"
+
+[features]
+aws_configured = []
+

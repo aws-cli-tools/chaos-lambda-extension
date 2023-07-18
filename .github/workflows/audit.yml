@@ -1,0 +1,29 @@
+name: Security audit
+on:
+  push:
+    paths: 
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  security_audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: taiki-e/install-action@just
+      - name: Install cargo-audit binary crate
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-audit
+          version: latest
+          use-tool-cache: true
+      - name: Audit
+        run: cargo audit
