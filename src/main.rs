@@ -1,35 +1,64 @@
-use anyhow::Result;
-use clap::Parser;
-use std::fmt::Debug;
-use whoamiaws::{OutputType, StsClient};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 
-#[derive(Debug, Parser)]
-struct Opt {
-    /// The AWS Region.
-    #[clap(short, long)]
-    region: Option<String>,
+use lambda_extension::{service_fn, Error, Extension, LambdaEvent};
 
-    /// Which profile to use.
-    #[clap(short, long)]
-    profile: Option<String>,
+use tokio::task;
+use tracing::{debug, info};
 
-    #[arg(value_enum)]
-    #[arg(default_value_t=OutputType::String)]
-    #[clap(short, long)]
-    output_type: OutputType,
-}
+mod routes;
 
 #[tokio::main]
-async fn main() -> Result<()> {
-    env_logger::init();
-    let args = Opt::parse();
+async fn main() -> Result<(), Error> {
+    // required to enable CloudWatch error logging by the runtime
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        // disable printing the name of the module in every log line.
+        .with_target(false)
+        // disabling time is handy because CloudWatch will add the ingestion time.
+        .without_time()
+        .init();
 
-    let region_provider = whoamiaws::get_region_provider(args.region);
+    let app = Router::new()
+        .route(
+            "/2018-06-01/runtime/invocation/next",
+            get(routes::get_next_invocation),
+        )
+        .route(
+            "/2018-06-01/runtime/invocation/:request_id/response",
+            post(routes::post_invoke_response),
+        )
+        .route(
+            "/2018-06-01/runtime/init/error",
+            post(routes::post_initialization_error),
+        )
+        .route(
+            "/2018-06-01/runtime/invocation/:request_id/error",
+            post(routes::post_invoke_error),
+        );
 
-    let shared_config = whoamiaws::get_aws_config(args.profile, region_provider).await;
+    debug!(
+        "Pulling AWS_LAMBDA_RUNTIME_API end point - {}",
+        *routes::AWS_LAMBDA_RUNTIME_API
+    );
+    // run it
+    let server =
+        axum::Server::bind(&"0.0.0.0:3000".parse().unwrap()).serve(app.into_make_service());
 
-    let client = StsClient::new(&shared_config);
-    whoamiaws::get_caller_identity(&client, args.output_type, &mut std::io::stdout()).await?;
+    let _ = task::spawn(async move {
+        server.await.unwrap();
+    });
 
+    Extension::new()
+        .with_events(&[])
+        .with_events_processor(service_fn(boot_extension))
+        .run()
+        .await
+}
+
+async fn boot_extension(event: LambdaEvent) -> Result<(), Error> {
+    info!("Received the following Lambda event - {:?} ", event.next);
     Ok(())
 }

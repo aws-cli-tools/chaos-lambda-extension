@@ -1,0 +1,5 @@
+[advisories]
+# See https://github.com/chronotope/chrono/issues/602 for RUSTSEC-2020-0071
+ignore = ["RUSTSEC-2020-0071"] 
+severity_threshold = "high"
+

@@ -1,27 +1,27 @@
 [package]
-name = "whoamiaws"
+name = "chaos-lambda-extension"
 version = "0.1.0"
 edition = "2021"
+authors = ["Efi Merdler-Kravitz @TServerless <efi.merdler@gmail.com>"]
+description = "Inject chaos into your Lambda using an extension"
+license = "Apache-2.0"
+repository = "https://github.com/aws-cli-tools/chaos-lambda-extension"
+keywords = ["AWS", "Lambda", "API", "Rust"]
+readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.71"
-async-trait = "0.1.68"
-aws-config = { version = "0.55.3", default-features = false, features = ["rustls"] }
-aws-sdk-sts = "0.28.0"
-aws-types = "0.55.3"
-clap = { version = "4.3.9", features = ["derive"] }
-env_logger = "0.10.0"
-log = "0.4.19"
-mockall = "0.11.4"
-serde_json = "1.0.99"
-tokio = { version = "1.29.0", features = ["full"] }
-
-[dev-dependencies]
-assert_cmd = "2.0.11"
-predicates = "3.0.3"
+axum = "0.6.19"
+lambda-extension = "0.8.1"
+lazy_static = "1.4.0"
 rand = "0.8.5"
-rstest = "0.17.0"
+reqwest = { version = "0.11.18", features = ["native-tls-vendored", "json", "serde_json"] }
+serde_json = "1.0.99"
+tokio = { version = "1.29.1", features = ["macros"] }
+tracing = { version = "0.1.37", features = ["log"] }
+tracing-subscriber = { version = "0.3.17", default-features = false, features = [
+    "fmt",
+] }
 
 [features]
 aws_configured = []
-
