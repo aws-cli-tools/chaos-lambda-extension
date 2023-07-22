@@ -47,7 +47,7 @@ async fn main() -> Result<(), Error> {
     let server =
         axum::Server::bind(&"0.0.0.0:3000".parse().unwrap()).serve(app.into_make_service());
 
-    let _ = task::spawn(async move {
+    task::spawn(async move {
         server.await.unwrap();
     });
 

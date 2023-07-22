@@ -1,10 +1,10 @@
-use lazy_static::lazy_static;
 use axum::{
     extract::Path,
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
     Json,
 };
+use lazy_static::lazy_static;
 
 use reqwest::header::TRANSFER_ENCODING;
 use serde_json::{json, Value};
@@ -120,7 +120,7 @@ pub async fn post_initialization_error(headers: HeaderMap, body: String) -> impl
 }
 
 pub async fn post_invoke_error(
-    Path(request_id): Path<String>,
+    Path(_): Path<String>,
     headers: HeaderMap,
     body: String,
 ) -> impl IntoResponse {
