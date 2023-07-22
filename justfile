@@ -10,7 +10,7 @@ format:
 
 # If your environment is connected to AWS `test` will run integration tests as well.
 test:
-	cargo test {{ if has_aws == "true" {"--all-features"} else {""} }}
+	cargo test {{ if has_aws == "true" {"--all-features"} else {""} }} -- --test-threads=1
 
 code-coverage $CARGO_INCREMENTAL="{{cargo_incremental}}":
 	LLVM_PROFILE_FILE=tmp-%p-%m.profraw RUSTFLAGS=-Cinstrument-coverage just test
@@ -30,8 +30,8 @@ _deploy-extension target:
 	@command -v aws &> /dev/null || { echo "aws cli not found"; exit 1; }
 	@rm -rf ./target/lambda
 	cargo lambda build --extension {{ if target == "release" { "--release" } else { "" } }}
-	zip -j ./target/lambda/extensions/chaos-lambda-extension.zip ./target/lambda/extensions/chaos-lambda-extension ./misc/bootstrap
-	AWS_PAGER="" aws lambda publish-layer-version --layer-name chaos-lambda-extension-x86_64-{{target}} --zip-file fileb://./target/lambda/extensions/chaos-lambda-extension.zip --description "Add some chaos to you Lambda" --compatible-runtimes python3.10 nodejs18.x java17 dotnet6 go1.x ruby3.2 provided.al2 --compatible-architectures x86_64 --license-info https://github.com/aws-cli-tools/chaos-lambda-extension/blob/main/LICENSE
+	zip -j ./target/lambda/extensions/chaos-lambda-extension.zip ./misc/bootstrap && cd ./target/lambda/ && zip -ur ./extensions/chaos-lambda-extension.zip ./extensions/chaos-lambda-extension
+	AWS_PAGER="" aws lambda publish-layer-version --layer-name chaos-lambda-extension-x86_64-{{target}} --zip-file fileb://./target/lambda/extensions/chaos-lambda-extension.zip --description "Add some chaos to you Lambda" --compatible-runtimes python3.10 python3.9 python3.8 nodejs18.x nodejs16.x nodejs14.x java17 java8.al2 java11 dotnet6 ruby3.2 ruby2.7 provided.al2 --compatible-architectures x86_64 --license-info https://github.com/aws-cli-tools/chaos-lambda-extension/blob/main/LICENSE
 
 # The variable interpolation for path_exists might not work as expected in just
 credentials := env_var("HOME") + "/.aws/credentials"

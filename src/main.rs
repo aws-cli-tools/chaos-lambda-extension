@@ -1,8 +1,3 @@
-use axum::{
-    routing::{get, post},
-    Router,
-};
-
 use lambda_extension::{service_fn, Error, Extension, LambdaEvent};
 
 use tokio::task;
@@ -21,31 +16,16 @@ async fn main() -> Result<(), Error> {
         .without_time()
         .init();
 
-    let app = Router::new()
-        .route(
-            "/2018-06-01/runtime/invocation/next",
-            get(routes::get_next_invocation),
-        )
-        .route(
-            "/2018-06-01/runtime/invocation/:request_id/response",
-            post(routes::post_invoke_response),
-        )
-        .route(
-            "/2018-06-01/runtime/init/error",
-            post(routes::post_initialization_error),
-        )
-        .route(
-            "/2018-06-01/runtime/invocation/:request_id/error",
-            post(routes::post_invoke_error),
-        );
+    let app = routes::router();
 
     debug!(
         "Pulling AWS_LAMBDA_RUNTIME_API end point - {}",
         *routes::AWS_LAMBDA_RUNTIME_API
     );
+    info!("Chaos extension is enabled");
     // run it
     let server =
-        axum::Server::bind(&"0.0.0.0:3000".parse().unwrap()).serve(app.into_make_service());
+        axum::Server::bind(&"0.0.0.0:9100".parse().unwrap()).serve(app.into_make_service());
 
     task::spawn(async move {
         server.await.unwrap();

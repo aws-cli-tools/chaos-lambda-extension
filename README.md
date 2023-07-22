@@ -1,43 +1,68 @@
 [![codecov](https://codecov.io/gh/aws-cli-tools/whoami/branch/main/graph/badge.svg?token=NW4955XIZT)](https://codecov.io/gh/aws-cli-tools/whoami)
 [![Actions Status](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main)
 
-# whoami
-he `whoami` CLI is a small Rust application that allows users to identify their current AWS identity. The CLI uses AWS Security Token Service (STS) to make a GetCallerIdentity request, which returns details about the IAM user or role whose credentials are used to call the operation.
+# lambda-chaos-extension
 
-The CLI is flexible and allows output in either a standard string or JSON format, depending on the user's preferences. It also allows users to specify the AWS Region and profile to use for requests.
+Using `lambda-chaos-extension` to inject faults to Lambda functions without any modification to function code.
+Unlike previous chaos implementation that required tight coupling with the Lambda runtime, this extension is agnostic to the runtime, and can run on any runtime that utilizes Amazon Linux 2 under the hood.
+Right now the following runtimes are supported:
+* Node.js 18
+* Node.js 16
+* Node.js 14
+* Python 3.10
+* Python 3.9
+* Python 3.8
+* Java 17
+* Java 11
+* Java 8
+* .NET 6
+* Ruby 3.2
+* Ruby 2.7
+* provided.al2
+ 
 
-## Usage
-To run the CLI:
+This extension inject two faults depending on configuration: 
+
+1. Add latency.
+2. Replace function response.
+
+## Configuration
+The extension is controled via environment variables
+### Latency fault
+* `CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY` - Enable latency fault injection. Set to either `true` or `false`. Default is `false`.
+* `CHAOS_EXTENSION__LAMBDA__LATENCY_VALUE` - How much latency to add to the lambda. Value in seconds. Default is `900` seconds.
+* `CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY` - A number between 0 to 1 that determined the probability of injecting the fault. Default it `0.9`
+
+### Response fault
+* `CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_REPONSE_BODY` - Enable response fault injection. Set to either `true` or `false`. Default is `false`.
+* `CHAOS_EXTENSION__RESPONSE__DEFAULT_RESPONSE` - The response to return as a stringified json. Default is 
+```json
+{
+    "statusCode": 500,
+    "body": {
+        "message": "hello, Chaos!!!"
+    }
+}
+```
+* `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A number between 0 to 1 that determined the probability of injecting the fault. Default it `0.9`
+
+## Deployment
+You can 
+
+To build and deploy your application for the first time, run the following in your shell:
+
 ```bash
-whoamiaws [OPTIONS]
+sam build --use-container
+sam deploy --guided
 ```
 
+## Chaos Tests
 
-Options:
+Browse the API Gateway URL or curl it from command line for couple of times. 
 
-* `-h, --help` Prints help information
-* `-o, --output_type` The output format (default is string) --> Fix
-* `-p, --profile` The AWS profile to use
-* `-r, --region` The AWS region to use
-
-## Installation
-
-There are two main methods for installing this tool:
-
-### Method 1: Download binaries
-
-You can download the pre-compiled binaries directly from the GitHub releases page. Choose the correct binary depending on your operating system.
-
-Visit the [releases page](https://github.com/aws-cli-tools/whoami/releases) to download the appropriate binary.
-
-### Method 2: Using Homebrew (for macOS users)
-
-If you are a macOS user and have [Homebrew](https://brew.sh/) installed, you can install this tool using the following commands:
-
-```shell
-brew tap aws-cli-tools/aws-cli-tools
-brew install whoami
-```
+- The normal results are status 200, {"message": "hello world"}. 
+- 50% of the responses are status 500, {"message": "hello, Chaos!!!"}
+- 10% of the responses are status 502, {"message": "Internal server error"}. 
 
 ## Running locally
 * You can always use `cargo` to manage the build and tests.
