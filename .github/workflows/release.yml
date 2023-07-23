@@ -71,8 +71,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::201893381538:role/GitHubRole
-          role-session-name: GitHubActionsSession
+          role-to-assume: arn:aws:iam::234138278568:role/GitHub-Access
+        role-session-name: GitHubActionsSession
       - name: Upload layer to us-east-1
         run: deploy-extension release us-east-1 ${{ matrix.target }} 
       - name: Upload layer to us-east-2
@@ -85,20 +85,6 @@ jobs:
         with:
           name: bins-${{ matrix.build }}
           path: dist
-    
-  upload-layer-to-aws:
-    name: Upload layer to AWS
-    permissions:
-      contents: write
-    needs: [dist]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - uses: actions/download-artifact@v2
-      - run: ls -al bins-*
-
   publish:
     name: Publish
     permissions:
