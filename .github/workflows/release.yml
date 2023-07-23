@@ -5,8 +5,8 @@ on:
     - 'v[0-9]+.[0-9]+.[0-9]+'
     
 env:
-  BIN_NAME: whoamiaws
-  PROJECT_NAME: whoami
+  BIN_NAME: chaos-lambda-extension
+  PROJECT_NAME: chaos-lambda-extension
 jobs:
   dist:
     name: Dist
@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false # don't fail other jobs if one fails
       matrix:
-        build: [x86_64-linux, aarch64-linux, x86_64-macos, x86_64-windows, aarch64-macos] 
+        build: [x86_64-linux, aarch64-linux] 
         include:
         - build: x86_64-linux
           os: ubuntu-20.04
@@ -25,21 +25,6 @@ jobs:
           os: ubuntu-20.04
           rust: stable
           target: aarch64-unknown-linux-gnu
-          cross: true
-        - build: x86_64-macos
-          os: macos-latest
-          rust: stable
-          target: x86_64-apple-darwin
-          cross: false
-        - build: x86_64-windows
-          os: windows-2019
-          rust: stable
-          target: x86_64-pc-windows-msvc
-          cross: false
-        - build: aarch64-macos
-          os: macos-latest
-          rust: stable
-          target: aarch64-apple-darwin
           cross: true
 
     steps:
@@ -52,25 +37,21 @@ jobs:
           toolchain: ${{ matrix.rust }}
           target: ${{ matrix.target }}
           override: true
-
+      - name: install cargo lambda
+        run: pip3 install cargo-lambda
       - name: Run cargo test
-        if: matrix.build != 'aarch64-macos'
         uses: actions-rs/cargo@v1
         with:
           use-cross: ${{ matrix.cross }}
           command: test
           args: --release --locked --target ${{ matrix.target }}
 
-      - name: Build release binary
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.cross }}
-          command: build
-          args: --release --locked --target ${{ matrix.target }}
+      - name: Build release binary 
+        run: just build-extension release ${{ matrix.target }}
 
       - name: Strip release binary (linux and macos)
-        if: matrix.build == 'x86_64-linux' || matrix.build == 'x86_64-macos'
-        run: strip "target/${{ matrix.target }}/release/$BIN_NAME"
+        if: matrix.build == 'x86_64-linux' 
+        run: strip "./target/lambda/extensions/$BIN_NAME"
 
       - name: Strip release binary (arm)
         if: matrix.build == 'aarch64-linux'
@@ -79,22 +60,44 @@ jobs:
             "$PWD/target:/target:Z" \
             rustembedded/cross:${{ matrix.target }} \
             aarch64-linux-gnu-strip \
-            /target/${{ matrix.target }}/release/$BIN_NAME
+            ./target/lambda/extensions/$BIN_NAME
 
       - name: Build archive
         shell: bash
         run: |
           mkdir dist
-          if [ "${{ matrix.os }}" = "windows-2019" ]; then
-            cp "target/${{ matrix.target }}/release/$BIN_NAME.exe" "dist/"
-          else
-            cp "target/${{ matrix.target }}/release/$BIN_NAME" "dist/"
-          fi
-
+          cp "./target/lambda/extensions/$BIN_NAME" "dist/"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::201893381538:role/GitHubRole
+          role-session-name: GitHubActionsSession
+      - name: Upload layer to us-east-1
+        run: deploy-extension release us-east-1 ${{ matrix.target }} 
+      - name: Upload layer to us-east-2
+        run: deploy-extension release us-east-2 ${{ matrix.target }} 
+      - name: Upload layer to us-west-1
+        run: deploy-extension release us-west-1 ${{ matrix.target }}
+      - name: Upload layer to us-west-2
+        run: deploy-extension release us-west-2 ${{ matrix.target }} 
       - uses: actions/upload-artifact@v2.2.4
         with:
           name: bins-${{ matrix.build }}
           path: dist
+    
+  upload-layer-to-aws:
+    name: Upload layer to AWS
+    permissions:
+      contents: write
+    needs: [dist]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+      - run: ls -al bins-*
 
   publish:
     name: Publish
@@ -132,10 +135,6 @@ jobs:
 
           for dir in bins-* ; do
               platform=${dir#"bins-"}
-              unset exe
-              if [[ $platform =~ "windows" ]]; then
-                  exe=".exe"
-              fi
               pkgname=$PROJECT_NAME-$TAG-$platform
               mkdir tmp/$pkgname
               # cp LICENSE README.md tmp/$pkgname
@@ -162,22 +161,4 @@ jobs:
         id: extract-version
         run: |
           printf "::set-output name=%s::%s\n" tag-name "${GITHUB_REF#refs/tags/}"
-  brew:
-    name: Upload binaries to brew
-    permissions:
-      contents: write
-    needs: [publish]
-    runs-on: ubuntu-latest      
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-      - name: Install bin-install
-        run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-      - name: Install rustwrap
-        run: cargo binstall -y rustwrap
-      - name: Deploy to brew
-        env:
-          TAG_NAME: ${{needs.publish.outputs.tagname}}
-          GITHUB_TOKEN: ${{secrets.DEPLOY_HOMBREW_SECRET}}
-        run: rustwrap --tag $TAG_NAME
       

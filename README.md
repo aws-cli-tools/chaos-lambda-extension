@@ -47,7 +47,13 @@ The extension is controled via environment variables
 * `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A number between 0 to 1 that determined the probability of injecting the fault. Default it `0.9`
 
 ## Deployment
-You can 
+### Public 
+The chaos extension is publicly available using `arn:aasee`. You can pull the latest version for your region easily by running
+```bash
+aws --region
+```
+You can se the extension using the console or your preferred IAC solution. You can see how to do it in AWS SAM n the `example` folder example.
+ 
 
 To build and deploy your application for the first time, run the following in your shell:
 
