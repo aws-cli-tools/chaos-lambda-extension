@@ -23,15 +23,19 @@ audit:
 # Deploy the extension to AWS. The deployment will be to the default region, x86_64-unknown-linux-gnu profile and compiled in debug mode. profile types - x86_64-unknown-linux-gnu || aarch64-unknown-linux-gnu
 deploy-debug-extension region="us-east-1" architecture="x86_64-unknown-linux-gnu":
 	@rm -rf ./target/lambda
-	just build-extension {{target}} {{architecture}}
-	just deploy-extension debug {{region}} {{architecture}}
+	just build-extension debug {{architecture}}
+	just deploy-extension {{region}} {{architecture}}
 
 # Deploy the extension to AWS. The deployment will be to the default region, x86_64-unknown-linux-gnu architecture and compiled in release mode. Architecture types - x86_64-unknown-linux-gnu || aarch64-unknown-linux-gnu
 deploy-release-extension region="us-east-1" architecture="x86_64-unknown-linux-gnu":
 	@rm -rf ./target/lambda
-	just build-extension {{target}} {{architecture}}
-	just deploy-extension release {{region}} {{architecture}}
+	just build-extension release {{architecture}}
+	just deploy-extension  {{region}} {{architecture}}
 
+build-extension target architecture:
+	@echo 'Building extension {{target}} for {{architecture}}'
+	cargo lambda build --extension {{ if target == "release" { "--release" } else { "" } }} --target {{ architecture }}
+	
 deploy-extension target region architecture:
 	@echo 'Deploying {{target}} for {{architecture}} in region {{region}}'
 	@command -v aws &> /dev/null || { echo "aws cli not found"; exit 1; }
@@ -47,9 +51,7 @@ deploy-extension target region architecture:
 	--compatible-architectures {{ if architecture == "aarch64-unknown-linux-gnu" { "arm64" } else { "x86_64" } }} \
 	--license-info https://github.com/aws-cli-tools/chaos-lambda-extension/blob/main/LICENSE
 
-build-extension target architecture:
-	@echo 'Building extension {{target}} for {{architecture}}'
-	cargo lambda build --extension {{ if target == "release" { "--release" } else { "" } }} --target {{ architecture }}
+
 # The variable interpolation for path_exists might not work as expected in just
 credentials := env_var("HOME") + "/.aws/credentials"
 cargo_incremental := if env_var_or_default("CI", "false") == "true" { "0" } else { "1" }
