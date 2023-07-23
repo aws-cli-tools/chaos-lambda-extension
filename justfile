@@ -24,18 +24,18 @@ audit:
 deploy-debug-extension region="us-east-1" architecture="x86_64-unknown-linux-gnu":
 	@rm -rf ./target/lambda
 	just build-extension debug {{architecture}}
-	just deploy-extension {{region}} {{architecture}}
+	just deploy-extension debug {{region}} {{architecture}}
 
 # Deploy the extension to AWS. The deployment will be to the default region, x86_64-unknown-linux-gnu architecture and compiled in release mode. Architecture types - x86_64-unknown-linux-gnu || aarch64-unknown-linux-gnu
 deploy-release-extension region="us-east-1" architecture="x86_64-unknown-linux-gnu":
 	@rm -rf ./target/lambda
 	just build-extension release {{architecture}}
-	just deploy-extension  {{region}} {{architecture}}
+	just deploy-extension  release {{region}} {{architecture}}
 
 build-extension target architecture:
 	@echo 'Building extension {{target}} for {{architecture}}'
 	cargo lambda build --extension {{ if target == "release" { "--release" } else { "" } }} --target {{ architecture }}
-	
+
 deploy-extension target region architecture:
 	@echo 'Deploying {{target}} for {{architecture}} in region {{region}}'
 	@command -v aws &> /dev/null || { echo "aws cli not found"; exit 1; }

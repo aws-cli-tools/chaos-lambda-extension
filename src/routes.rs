@@ -124,7 +124,7 @@ pub async fn post_initialization_error(headers: HeaderMap, body: String) -> impl
             "http://{}/2018-06-01/runtime/init/error",
             *AWS_LAMBDA_RUNTIME_API
         ))
-        .json(&body.as_str())
+        .body(body.clone())
         .headers(headers)
         .send()
         .await
@@ -138,17 +138,17 @@ pub async fn post_initialization_error(headers: HeaderMap, body: String) -> impl
 }
 
 pub async fn post_invoke_error(
-    Path(_): Path<String>,
+    Path(request_id): Path<String>,
     headers: HeaderMap,
     body: String,
 ) -> impl IntoResponse {
     info!("post_invoke_error was invoked");
     let resp = reqwest::Client::new()
         .post(format!(
-            "http://{}/2018-06-01/runtime/init/error",
-            *AWS_LAMBDA_RUNTIME_API
+            "http://{}/2018-06-01/runtime/invocation/{}/error",
+            *AWS_LAMBDA_RUNTIME_API, request_id
         ))
-        .json(&body.as_str())
+        .body(body.clone())
         .headers(headers)
         .send()
         .await
