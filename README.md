@@ -1,5 +1,11 @@
-[![codecov](https://codecov.io/gh/aws-cli-tools/whoami/branch/main/graph/badge.svg?token=NW4955XIZT)](https://codecov.io/gh/aws-cli-tools/whoami)
-[![Actions Status](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main)
+**Work In Progress**
+
+**Not ready yet**
+
+🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
+
+<!-- [![codecov](https://codecov.io/gh/aws-cli-tools/whoami/branch/main/graph/badge.svg?token=NW4955XIZT)](https://codecov.io/gh/aws-cli-tools/whoami)
+[![Actions Status](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main) -->
 
 # lambda-chaos-extension
 
@@ -46,7 +52,7 @@ The extension is controled via environment variables
 ```
 * `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A number between 0 to 1 that determined the probability of injecting the fault. Default it `0.9`
 
-## Deployment
+<!-- ## Deployment
 ### Public 
 The chaos extension is publicly available using `arn:aasee`. You can pull the latest version for your region easily by running
 ```bash
@@ -68,7 +74,7 @@ Browse the API Gateway URL or curl it from command line for couple of times.
 
 - The normal results are status 200, {"message": "hello world"}. 
 - 50% of the responses are status 500, {"message": "hello, Chaos!!!"}
-- 10% of the responses are status 502, {"message": "Internal server error"}. 
+- 10% of the responses are status 502, {"message": "Internal server error"}.  -->
 
 ## Running locally
 * You can always use `cargo` to manage the build and tests.
