@@ -27,6 +27,12 @@ jobs:
           cross: true
 
     steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
+          role-session-name: GitHubActionsSession
       - name: Checkout sources
         uses: actions/checkout@v2
       - name: Install ${{ matrix.rust }} toolchain
