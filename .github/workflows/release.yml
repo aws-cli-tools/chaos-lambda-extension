@@ -44,7 +44,7 @@ jobs:
           use-cross: ${{ matrix.cross }}
           command: test
           args: --release --locked --target ${{ matrix.target }} -- --test-threads=1
-
+      - uses: taiki-e/install-action@just
       - name: Build release binary 
         run: just build-extension release ${{ matrix.target }}
 
