@@ -1,8 +1,7 @@
 name: Release
 on:
   push:
-    tags:
-    - 'v[0-9]+.[0-9]+.[0-9]+'
+    
     
 env:
   BIN_NAME: chaos-lambda-extension
@@ -71,8 +70,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::234138278568:role/GitHub-Access
-        role-session-name: GitHubActionsSession
+          role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
+          role-session-name: GitHubActionsSession
       - name: Upload layer to us-east-1
         run: deploy-extension release us-east-1 ${{ matrix.target }} 
       - name: Upload layer to us-east-2
