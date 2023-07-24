@@ -94,6 +94,7 @@ jobs:
     name: Publish
     permissions:
       id-token: write
+      content: read
     needs: [dist]
     runs-on: ubuntu-latest
     outputs: 
