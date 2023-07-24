@@ -93,7 +93,7 @@ jobs:
   publish:
     name: Publish
     permissions:
-      contents: write
+      id-token: write
     needs: [dist]
     runs-on: ubuntu-latest
     outputs: 
