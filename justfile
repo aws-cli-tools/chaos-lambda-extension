@@ -39,7 +39,7 @@ build-extension target architecture:
 deploy-extension target region architecture:
 	@echo 'Deploying {{target}} for {{architecture}} in region {{region}}'
 	@command -v aws &> /dev/null || { echo "aws cli not found"; exit 1; }
-	
+	@rm -rf ./target/lambda/extensions/chaos-lambda-extension.zip
 	zip -j ./target/lambda/extensions/chaos-lambda-extension.zip ./misc/bootstrap && \
 	cd ./target/lambda/ && \
 	zip -ur ./extensions/chaos-lambda-extension.zip ./extensions/chaos-lambda-extension
