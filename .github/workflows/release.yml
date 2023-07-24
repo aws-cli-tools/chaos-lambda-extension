@@ -29,12 +29,6 @@ jobs:
           cross: true
 
     steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
-          role-session-name: GitHubActionsSession
       - name: Checkout sources
         uses: actions/checkout@v2
       - name: Install ${{ matrix.rust }} toolchain
@@ -81,13 +75,13 @@ jobs:
           role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
           role-session-name: GitHubActionsSession
       - name: Upload layer to us-east-1
-        run: deploy-extension release us-east-1 ${{ matrix.target }} 
+        run: just deploy-extension release us-east-1 ${{ matrix.target }} 
       - name: Upload layer to us-east-2
-        run: deploy-extension release us-east-2 ${{ matrix.target }} 
+        run: just deploy-extension release us-east-2 ${{ matrix.target }} 
       - name: Upload layer to us-west-1
-        run: deploy-extension release us-west-1 ${{ matrix.target }}
+        run: just deploy-extension release us-west-1 ${{ matrix.target }}
       - name: Upload layer to us-west-2
-        run: deploy-extension release us-west-2 ${{ matrix.target }} 
+        run: just deploy-extension release us-west-2 ${{ matrix.target }} 
       - uses: actions/upload-artifact@v2.2.4
         with:
           name: bins-${{ matrix.build }}
