@@ -20,12 +20,6 @@ jobs:
     steps:
       - uses: taiki-e/install-action@just
       - uses: taiki-e/install-action@grcov
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::201893381538:role/GitHubRole
-          role-session-name: GitHubActionsSession
       - uses: actions/checkout@v3
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
