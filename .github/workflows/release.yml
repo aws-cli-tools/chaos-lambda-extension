@@ -10,6 +10,8 @@ jobs:
   dist:
     name: Dist
     runs-on: ${{ matrix.os }}
+    permissions:
+      id-token: write
     strategy:
       fail-fast: false # don't fail other jobs if one fails
       matrix:
