@@ -132,6 +132,7 @@ jobs:
         with:
           commit_message: Update LAYERS.md
           file_pattern: LAYERS.md
+          ref: master
 
   publish:
     name: Publish to GitHub Release
