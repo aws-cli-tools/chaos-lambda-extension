@@ -32,14 +32,16 @@ deploy-release-extension region="us-east-1" architecture="x86_64-unknown-linux-g
 	just build-extension release {{architecture}}
 	just deploy-extension  release {{region}} {{architecture}}
 
+# Build an extension locally
 build-extension target architecture:
 	@echo 'Building extension {{target}} for {{architecture}}'
 	cargo lambda build --extension {{ if target == "release" { "--release" } else { "" } }} --target {{ architecture }}
 
+# Deploy the built extension as layer to AWS
 deploy-extension target region architecture:
 	@echo 'Deploying {{target}} for {{architecture}} in region {{region}}'
 	@command -v aws &> /dev/null || { echo "aws cli not found"; exit 1; }
-	
+	@rm -rf ./target/lambda/extensions/chaos-lambda-extension.zip
 	zip -j ./target/lambda/extensions/chaos-lambda-extension.zip ./misc/bootstrap && \
 	cd ./target/lambda/ && \
 	zip -ur ./extensions/chaos-lambda-extension.zip ./extensions/chaos-lambda-extension
@@ -51,7 +53,14 @@ deploy-extension target region architecture:
 	--compatible-architectures {{ if architecture == "aarch64-unknown-linux-gnu" { "arm64" } else { "x86_64" } }} \
 	--license-info https://github.com/aws-cli-tools/chaos-lambda-extension/blob/main/LICENSE
 
-
+# Give global (*) permission to use a layer
+apply-global-permission-to-layer layer_name version:
+	aws lambda add-layer-version-permission \
+	--layer-name {{ layer_name }} \
+	--version-number {{ version }} \
+	--statement-id global-access \
+	--action lambda:GetLayerVersion \
+	--principal '*'
 # The variable interpolation for path_exists might not work as expected in just
 credentials := env_var("HOME") + "/.aws/credentials"
 cargo_incremental := if env_var_or_default("CI", "false") == "true" { "0" } else { "1" }

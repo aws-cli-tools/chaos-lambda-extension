@@ -1,14 +1,15 @@
 name: Release
 on:
   push:
-    
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+'
     
 env:
   BIN_NAME: chaos-lambda-extension
   PROJECT_NAME: chaos-lambda-extension
 jobs:
-  dist:
-    name: Dist
+  build-artifacts:
+    name: Build artifacts
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false # don't fail other jobs if one fails
@@ -25,10 +26,13 @@ jobs:
           rust: stable
           target: aarch64-unknown-linux-gnu
           cross: true
+    outputs:
+      target: ${{ matrix.target }}
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Install ${{ matrix.rust }} toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -66,30 +70,75 @@ jobs:
         run: |
           mkdir dist
           cp "./target/lambda/extensions/$BIN_NAME" "dist/"
+      - uses: actions/upload-artifact@v2.2.4
+        with:
+          name: bins-${{ matrix.target }}
+          path: dist
+  
+  upload-to-aws:
+    name: Upload layer for ${{ matrix.region }} target ${{ matrix.target}}
+    needs: [build-artifacts]
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: write
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu]
+        region: [
+          us-east-1, us-east-2, us-west-1, us-west-2, eu-central-1,
+          eu-west-1, eu-west-2, eu-west-3, eu-north-1, ca-central-1,
+          ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1,
+          ap-southeast-1, ap-southeast-2, sa-east-1
+        ]
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: bins-${{ matrix.target }}
+          path: target/lambda/extensions
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
+          role-session-name: GitHubActionsSession
+      - uses: taiki-e/install-action@just
+      - name: Upload layer to ${{ matrix.region }}
+        run: set -e; just deploy-extension release ${{ matrix.region }} ${{ matrix.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
+      
+
+  update-layer-readme:
+    name: Update LAYERS.md
+    runs-on: ubuntu-20.04
+    needs: [upload-to-aws]
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
           role-session-name: GitHubActionsSession
-      - name: Upload layer to us-east-1
-        run: deploy-extension release us-east-1 ${{ matrix.target }} 
-      - name: Upload layer to us-east-2
-        run: deploy-extension release us-east-2 ${{ matrix.target }} 
-      - name: Upload layer to us-west-1
-        run: deploy-extension release us-west-1 ${{ matrix.target }}
-      - name: Upload layer to us-west-2
-        run: deploy-extension release us-west-2 ${{ matrix.target }} 
-      - uses: actions/upload-artifact@v2.2.4
+      - name: Update LAYERS.md with arm
+        run: set -e; echo "# ARM64" > LAYERS.md && for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-aarch64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text | tee -a LAYERS.md; echo "" >> LAYERS.md; done
+      - name: Update LAYERS.md with X86
+        run: set -e; echo "# X86-64" >> LAYERS.md; for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-x86_64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text | tee -a LAYERS.md; echo "" | tee -a LAYERS.md; done
+      - uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          name: bins-${{ matrix.build }}
-          path: dist
+          commit_message: Update LAYERS.md
+          file_pattern: LAYERS.md
+
   publish:
-    name: Publish
+    name: Publish to GitHub Release
+    needs: [build-artifacts]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: [dist]
-    runs-on: ubuntu-latest
     outputs: 
       tagname: ${{ steps.tagname.outputs.val }}
     steps:
@@ -123,14 +172,10 @@ jobs:
               pkgname=$PROJECT_NAME-$TAG-$platform
               mkdir tmp/$pkgname
               # cp LICENSE README.md tmp/$pkgname
-              mv bins-$platform/$BIN_NAME$exe tmp/$pkgname
-              chmod +x tmp/$pkgname/$BIN_NAME$exe
-
-              if [ "$exe" = "" ]; then
-                  tar cJf dist/$pkgname.tar.xz -C tmp $pkgname
-              else
-                  (cd tmp && 7z a -r ../dist/$pkgname.zip $pkgname)
-              fi
+              mv bins-$platform/$BIN_NAME tmp/$pkgname
+              chmod +x tmp/$pkgname/$BIN_NAME
+              tar cJf dist/$pkgname.tar.xz -C tmp $pkgname
+              
           done
 
       - name: Upload binaries to release
