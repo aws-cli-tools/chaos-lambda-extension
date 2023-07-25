@@ -125,9 +125,9 @@ jobs:
           role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
           role-session-name: GitHubActionsSession
       - name: Update LAYERS.md with arm
-        run: set -e; echo "" > LAYERS.md && for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-aarch64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text >> LAYERS.md; done
+        run: set -e; echo -e "ARM64\n*****\n" > LAYERS.md && for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-aarch64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text | tee -a LAYERS.md; echo "" >> LAYERS.md; done
       - name: Update LAYERS.md with X86
-        run: set -e; for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-x86_64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text >> LAYERS.md; done
+        run: set -e; echo -e "X86-64\n******\n" >> LAYERS.md; for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-x86_64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text | tee -a LAYERS.md; echo "" | tee -a LAYERS.md; done
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Update LAYERS.md
