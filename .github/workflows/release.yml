@@ -107,6 +107,8 @@ jobs:
 
   update-layer-readme:
     name: Update LAYERS.md
+    runs-on: ubuntu-20.04
+    needs: [upload-to-aws]
     permissions:
       id-token: write
       contents: write
