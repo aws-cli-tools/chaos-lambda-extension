@@ -76,13 +76,15 @@ jobs:
           path: dist
   
   upload-to-aws:
-    name: Upload layer for ${{ needs.build-artifacts.outputs.target }}
+    name: Upload layer for ${{ matrix.region }} target ${{ matrix.target}}
     needs: [build-artifacts]
     runs-on: ubuntu-20.04
     permissions:
       id-token: write
+      contents: write
     strategy:
       matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu]
         region: [
           us-east-1, us-east-2, us-west-1, us-west-2, eu-central-1,
           eu-west-1, eu-west-2, eu-west-3, eu-north-1, ca-central-1,
@@ -92,7 +94,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: bins-${{ needs.build-artifacts.outputs.target }}
+          name: bins-${{ matrix.target }}
           path: target/lambda/extensions
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -101,7 +103,16 @@ jobs:
           role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
           role-session-name: GitHubActionsSession
       - name: Upload layer to ${{ matrix.region }}
-        run: just deploy-extension release ${{ matrix.region }} ${{ needs.build-artifacts.outputs.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
+        run: just deploy-extension release ${{ matrix.region }} ${{ matrix.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
+      - name: Update LAYERS.md with arm
+        run: echo "" > LAYERS.md && for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-aarch64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text >> LAYERS.md; done
+      - name: Update LAYERS.md with X86
+        run: for region in $(aws ec2 describe-regions --query "Regions[].RegionName" --output text); do aws lambda list-layer-versions --layer-name chaos-lambda-extension-x86_64-unknown-linux-gnu-release --region $region --query 'LayerVersions[0].LayerVersionArn' --output text >> LAYERS.md; done
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Update LAYERS.md
+          file_pattern: LAYERS.md
+
   
   publish:
     name: Publish to GitHub Release
