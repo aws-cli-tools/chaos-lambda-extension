@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  nodejs-hello-world
+
+  Sample SAM Template for chaos lambda extension.
+  
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  HelloWorldFunctionX86:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: hello-world/
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      Layers:
+        - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-x86_64-unknown-linux-gnu-release:6
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY: true
+          CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY: 0.5 
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Path: /hellox86
+            Method: get
+  HelloWorldFunctionArm:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: hello-world/
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - arm64
+      Layers:
+        - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-aarch64-unknown-linux-gnu-release:6
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_REPONSE_BODY: true
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Path: /helloarm
+            Method: get
+
+Outputs:
+  HelloWorldApiX86:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function - x86"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hellox86/"
+  HelloWorldApiArm:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function - arm"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/helloarm/"

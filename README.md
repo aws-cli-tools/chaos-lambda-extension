@@ -55,7 +55,11 @@ Control the extension via environment variables:
 * `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A probability value between 0 and 1 that determines the likelihood of fault injection. Default is `0.9`.
 
 ## Deployment
-The chaos extension is publicly available. For the latest versions of the layer, refer to [LAYERS.md](LAYERS.md). Incorporate the extension using the AWS Console, or your preferred IAC solution. See the AWS SAM usage example in the `examples` directory.
+The chaos extension is publicly available as a layer. For the latest versions of the layer, refer to [LAYERS.md](LAYERS.md). Incorporate the layer using the AWS Console, or your preferred IAC solution. 
+Additionally, when incorporating the layer, remember to set an environment variable in your Lambda. This variable should be named `AWS_LAMBDA_EXEC_WRAPPER` and have `/opt/bootstrap` as its value.
+
+
+See the AWS SAM usage example in the `examples` directory.
 
 ## Running Locally
 * Utilize `cargo` for build and test management.

@@ -22,12 +22,14 @@ audit:
 
 # Deploy the extension to AWS. The deployment will be to the default region, x86_64-unknown-linux-gnu profile and compiled in debug mode. profile types - x86_64-unknown-linux-gnu || aarch64-unknown-linux-gnu
 deploy-debug-extension region="us-east-1" architecture="x86_64-unknown-linux-gnu":
+	@echo 'Deploying debug for {{architecture}} in region {{region}}'
 	@rm -rf ./target/lambda
 	just build-extension debug {{architecture}}
 	just deploy-extension debug {{region}} {{architecture}}
 
 # Deploy the extension to AWS. The deployment will be to the default region, x86_64-unknown-linux-gnu architecture and compiled in release mode. Architecture types - x86_64-unknown-linux-gnu || aarch64-unknown-linux-gnu
 deploy-release-extension region="us-east-1" architecture="x86_64-unknown-linux-gnu":
+	@echo 'Deploying release for {{architecture}} in region {{region}}'
 	@rm -rf ./target/lambda
 	just build-extension release {{architecture}}
 	just deploy-extension  release {{region}} {{architecture}}
@@ -39,14 +41,13 @@ build-extension target architecture:
 
 # Deploy the built extension as layer to AWS
 deploy-extension target region architecture:
-	@echo 'Deploying {{target}} for {{architecture}} in region {{region}}'
-	@command -v aws &> /dev/null || { echo "aws cli not found"; exit 1; }
-	@rm -rf ./target/lambda/extensions/chaos-lambda-extension.zip
-	zip -j ./target/lambda/extensions/chaos-lambda-extension.zip ./misc/bootstrap && \
+	@command -v aws > /dev/null 2>&1 || { echo "aws cli not found"; exit 1; }
+	@rm -rf ./target/lambda/extensions/chaos-lambda-extension.zip > /dev/null
+	@zip -j ./target/lambda/extensions/chaos-lambda-extension.zip ./misc/bootstrap > /dev/null && \
 	cd ./target/lambda/ && \
-	zip -ur ./extensions/chaos-lambda-extension.zip ./extensions/chaos-lambda-extension
+	zip -ur ./extensions/chaos-lambda-extension.zip ./extensions/chaos-lambda-extension > /dev/null
 	
-	AWS_PAGER="" aws lambda publish-layer-version --region {{region}} --layer-name chaos-lambda-extension-{{architecture}}-{{target}} \
+	@AWS_PAGER="" aws lambda publish-layer-version --region {{region}} --layer-name chaos-lambda-extension-{{architecture}}-{{target}} \
 	--zip-file fileb://./target/lambda/extensions/chaos-lambda-extension.zip \
 	--description "Add some chaos to you Lambda" \
 	--compatible-runtimes python3.10 python3.9 python3.8 nodejs18.x nodejs16.x nodejs14.x java17 java8.al2 java11 dotnet6 ruby3.2 ruby2.7 provided.al2 \
