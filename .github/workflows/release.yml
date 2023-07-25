@@ -90,10 +90,10 @@ jobs:
           ap-southeast-1, ap-southeast-2
         ]
     steps:
-      - uses: actions/download-artifact@v2.2.4
+      - uses: actions/download-artifact@v2
         with:
           name: bins-${{ needs.build-artifacts.outputs.target }}
-          path: dist
+          path: target/lambda/extensions
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
