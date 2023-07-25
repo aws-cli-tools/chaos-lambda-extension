@@ -63,7 +63,7 @@ pub async fn get_next_invocation() -> impl IntoResponse {
 
     let mut headers = resp.headers().clone();
     // Chunked respinses are causing issues.
-    headers.remove("transfer-encoding").unwrap();
+    headers.remove("transfer-encoding");
     let status = resp.status().as_u16();
     let status = StatusCode::from_u16(status).unwrap();
 
@@ -218,7 +218,7 @@ mod tests {
         let app = router();
 
         env::set_var(ENABLE_LATENCY_ENV_NAME, "true");
-        env::set_var(LATENCY_PROBABILITY_ENV_NAME, "0.0");
+        env::set_var(LATENCY_PROBABILITY_ENV_NAME, "1.0");
         env::set_var(LATENCY_VALUE_ENV_NAME, "2");
         env::set_var(
             "AWS_LAMBDA_RUNTIME_API",
@@ -256,7 +256,7 @@ mod tests {
         let app = router();
 
         env::set_var(ENABLE_CHANGE_REPONSE_BODY_ENV_NAME, "true");
-        env::set_var(REPONSE_PROBABILITY_ENV_NAME, "0.0");
+        env::set_var(REPONSE_PROBABILITY_ENV_NAME, "1.0");
         env::set_var(
             "AWS_LAMBDA_RUNTIME_API",
             mock_server.uri().replace("http://", ""),
