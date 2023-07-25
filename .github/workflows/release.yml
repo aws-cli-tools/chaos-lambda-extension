@@ -1,8 +1,8 @@
 name: Release
 on:
   push:
-    tags:
-    - 'v[0-9]+.[0-9]+.[0-9]+'
+    # tags:
+    # - 'v[0-9]+.[0-9]+.[0-9]+'
     
 env:
   BIN_NAME: chaos-lambda-extension
@@ -28,6 +28,8 @@ jobs:
           rust: stable
           target: aarch64-unknown-linux-gnu
           cross: true
+    outputs:
+      target: ${{ matrix.target }}
 
     steps:
       - name: Checkout sources
@@ -70,50 +72,39 @@ jobs:
         run: |
           mkdir dist
           cp "./target/lambda/extensions/$BIN_NAME" "dist/"
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
-          role-session-name: GitHubActionsSession
-      - name: Upload layer to us-east-1
-        run: just deploy-extension release us-east-1 ${{ matrix.target }} 
-      - name: Upload layer to us-east-2
-        run: just deploy-extension release us-east-2 ${{ matrix.target }} 
-      - name: Upload layer to us-west-1
-        run: just deploy-extension release us-west-1 ${{ matrix.target }}
-      - name: Upload layer to us-west-2
-        run: just deploy-extension release us-west-2 ${{ matrix.target }} 
-      - name: Upload layer to eu-central-1
-        run: just deploy-extension release eu-central-1 ${{ matrix.target }} 
-      - name: Upload layer to eu-west-1
-        run: just deploy-extension release eu-west-1 ${{ matrix.target }} 
-      - name: Upload layer to eu-west-2
-        run: just deploy-extension release eu-west-2 ${{ matrix.target }} 
-      - name: Upload layer to eu-west-3
-        run: just deploy-extension release eu-west-3 ${{ matrix.target }} 
-      - name: Upload layer to eu-north-1
-        run: just deploy-extension release eu-north-1 ${{ matrix.target }} 
-      - name: Upload layer to ca-central-1
-        run: just deploy-extension release ca-central-1 ${{ matrix.target }} 
-      - name: Upload layer to ap-south-1
-        run: just deploy-extension release ap-south-1 ${{ matrix.target }} 
-      - name: Upload layer to ap-northeast-3
-        run: just deploy-extension release ap-northeast-3 ${{ matrix.target }} 
-      - name: Upload layer to ap-northeast-2
-        run: just deploy-extension release ap-northeast-2 ${{ matrix.target }} 
-      - name: Upload layer to ap-northeast-1
-        run: just deploy-extension release ap-northeast-1 ${{ matrix.target }} 
-      - name: Upload layer to ap-southeast-1
-        run: just deploy-extension release ap-southeast-1 ${{ matrix.target }} 
-      - name: Upload layer to ap-southeast-2
-        run: just deploy-extension release ap-southeast-2 ${{ matrix.target }} 
       - uses: actions/upload-artifact@v2.2.4
         with:
           name: bins-${{ matrix.build }}
           path: dist
+  
+  upload-to-aws:
+    name: Upload layer for ${{ needs.build.outputs.target }}
+    needs: build
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        region: [
+          us-east-1, us-east-2, us-west-1, us-west-2, eu-central-1,
+          eu-west-1, eu-west-2, eu-west-3, eu-north-1, ca-central-1,
+          ap-south-1, ap-northeast-3, ap-northeast-2, ap-northeast-1,
+          ap-southeast-1, ap-southeast-2
+        ]
+    steps:
+      - uses: actions/download-artifact@v2.2.4
+        with:
+          name: bins-${{ needs.build.outputs.target }}
+          path: dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
+          role-session-name: GitHubActionsSession
+      - name: Upload layer to ${{ matrix.region }}
+        run: just deploy-extension release ${{ matrix.region }} ${{ needs.build.outputs.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
+  
   publish:
-    name: Publish
+    name: Publish to GitHub Release
     needs: [dist]
     runs-on: ubuntu-latest
     permissions:
