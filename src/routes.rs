@@ -56,12 +56,14 @@ pub async fn get_next_invocation() -> impl IntoResponse {
         .unwrap_or("900".to_string())
         .parse()
         .unwrap_or(15 * 60);
-    if enable_timeout && rand::random::<f64>() > timeout_probability {
+    if enable_timeout && rand::random::<f64>() < timeout_probability {
         info!("Added latency to Lambda - {} seconds", latency);
         sleep(Duration::from_secs(latency));
     }
 
-    let headers = resp.headers().clone();
+    let mut headers = resp.headers().clone();
+    // Chunked respinses are causing issues.
+    headers.remove("transfer-encoding").unwrap();
     let status = resp.status().as_u16();
     let status = StatusCode::from_u16(status).unwrap();
 
@@ -95,7 +97,7 @@ pub async fn post_invoke_response(
         probability, response_probability
     );
     let mut body = data;
-    if enable_change_reponse && probability > response_probability {
+    if enable_change_reponse && probability < response_probability {
         body =
             std::env::var(DEFAULT_RESPONSE_ENV_NAME).unwrap_or(DEFAULT_RESPONSE_BODY.to_string());
     }

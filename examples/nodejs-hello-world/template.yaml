@@ -20,6 +20,11 @@ Resources:
         - x86_64
       Layers:
         - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-x86_64-unknown-linux-gnu-release:6
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY: true
+          CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY: 0.5 
       Events:
         HelloWorld:
           Type: Api 
@@ -36,6 +41,10 @@ Resources:
         - arm64
       Layers:
         - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-aarch64-unknown-linux-gnu-release:6
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_REPONSE_BODY: true
       Events:
         HelloWorld:
           Type: Api 
