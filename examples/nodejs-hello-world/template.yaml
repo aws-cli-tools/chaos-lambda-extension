@@ -19,7 +19,7 @@ Resources:
       Architectures:
         - x86_64
       Layers:
-        - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-x86_64-unknown-linux-gnu-release:5
+        - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-x86_64-unknown-linux-gnu-release:6
       Events:
         HelloWorld:
           Type: Api 
@@ -35,7 +35,7 @@ Resources:
       Architectures:
         - arm64
       Layers:
-        - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-aarch64-unknown-linux-gnu-release:5
+        - arn:aws:lambda:us-east-1:871265522301:layer:chaos-lambda-extension-aarch64-unknown-linux-gnu-release:6
       Events:
         HelloWorld:
           Type: Api 
