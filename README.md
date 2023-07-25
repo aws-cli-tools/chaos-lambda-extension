@@ -9,9 +9,8 @@
 
 # lambda-chaos-extension
 
-Using `lambda-chaos-extension` to inject faults to Lambda functions without any modification to function code.
-Unlike previous chaos implementation that required tight coupling with the Lambda runtime, this extension is agnostic to the runtime, and can run on any runtime that utilizes Amazon Linux 2 under the hood.
-Right now the following runtimes are supported:
+The `lambda-chaos-extension` allows you to inject faults into Lambda functions without modifying the function code. Unlike previous chaos implementations that required tight coupling with the Lambda runtime, this extension is runtime-agnostic. It can operate with any runtime that utilizes Amazon Linux 2. Currently, the supported runtimes include:
+
 * Node.js 18
 * Node.js 16
 * Node.js 14
@@ -25,23 +24,26 @@ Right now the following runtimes are supported:
 * Ruby 3.2
 * Ruby 2.7
 * provided.al2
- 
 
-This extension inject two faults depending on configuration: 
+The extension can inject two types of faults based on the configuration:
 
-1. Add latency.
-2. Replace function response.
+1. Induce latency.
+2. Modify function response.
 
 ## Configuration
-The extension is controled via environment variables
-### Latency fault
-* `CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY` - Enable latency fault injection. Set to either `true` or `false`. Default is `false`.
-* `CHAOS_EXTENSION__LAMBDA__LATENCY_VALUE` - How much latency to add to the lambda. Value in seconds. Default is `900` seconds.
-* `CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY` - A number between 0 to 1 that determined the probability of injecting the fault. Default it `0.9`
 
-### Response fault
-* `CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_REPONSE_BODY` - Enable response fault injection. Set to either `true` or `false`. Default is `false`.
-* `CHAOS_EXTENSION__RESPONSE__DEFAULT_RESPONSE` - The response to return as a stringified json. Default is 
+Control the extension via environment variables:
+
+### Latency Fault
+
+* `CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY` - Enables latency fault injection. Accepts `true` or `false`. Default is `false`.
+* `CHAOS_EXTENSION__LAMBDA__LATENCY_VALUE` - Specifies the latency duration (in seconds) to introduce. Default is `900` seconds.
+* `CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY` - A probability value between 0 and 1 that determines the likelihood of fault injection. Default is `0.9`.
+
+### Response Fault
+
+* `CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_RESPONSE_BODY` - Enables response fault injection. Accepts `true` or `false`. Default is `false`.
+* `CHAOS_EXTENSION__RESPONSE__DEFAULT_RESPONSE` - Specifies the response to return in stringified JSON format. Default is:
 ```json
 {
     "statusCode": 500,
@@ -50,18 +52,15 @@ The extension is controled via environment variables
     }
 }
 ```
-* `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A number between 0 to 1 that determined the probability of injecting the fault. Default it `0.9`
+* `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A probability value between 0 and 1 that determines the likelihood of fault injection. Default is `0.9`.
 
 ## Deployment
-### Public 
-The chaos extension is publicly available. The latest versions of the layer are available in [LAYERS.md](LAYERS.ms)
-You can use the extension using the console or your preferred IAC solution. You can see how to do it in AWS SAM in the `example` folder example.
- 
+The chaos extension is publicly available. For the latest versions of the layer, refer to [LAYERS.md](LAYERS.md). Incorporate the extension using the AWS Console, or your preferred IAC solution. See the AWS SAM usage example in the `examples` directory.
 
-## Running locally
-* You can always use `cargo` to manage the build and tests.
-* We use [`just`](https://github.com/casey/just) as a command running.
-* Use `just gate` to run all checks locally.
+## Running Locally
+* Utilize `cargo` for build and test management.
+* We employ [`just`](https://github.com/casey/just) as a command runner.
+* Execute `just gate` to run all checks locally.
 
 ## Contributing
-See our [CONTRIBUTION](CONTRIBUTION.md) page
+For contribution guidelines, see our [CONTRIBUTION](CONTRIBUTION.md) page.

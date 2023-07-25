@@ -91,6 +91,8 @@ jobs:
           ap-southeast-1, ap-southeast-2
         ]
     steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: bins-${{ matrix.target }}
