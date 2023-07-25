@@ -11,8 +11,6 @@ jobs:
   build-artifacts:
     name: Build artifacts
     runs-on: ${{ matrix.os }}
-    permissions:
-      id-token: write
     strategy:
       fail-fast: false # don't fail other jobs if one fails
       matrix:
@@ -81,6 +79,8 @@ jobs:
     name: Upload layer for ${{ needs.build-artifacts.outputs.target }}
     needs: [build-artifacts]
     runs-on: ubuntu-20.04
+    permissions:
+      id-token: write
     strategy:
       matrix:
         region: [
