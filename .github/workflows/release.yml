@@ -8,8 +8,8 @@ env:
   BIN_NAME: chaos-lambda-extension
   PROJECT_NAME: chaos-lambda-extension
 jobs:
-  dist:
-    name: Dist
+  build-artifacts:
+    name: Build artifacts
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
@@ -78,8 +78,8 @@ jobs:
           path: dist
   
   upload-to-aws:
-    name: Upload layer for ${{ needs.build.outputs.target }}
-    needs: build
+    name: Upload layer for ${{ needs.build-artifacts.outputs.target }}
+    needs: [build-artifacts]
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2.2.4
         with:
-          name: bins-${{ needs.build.outputs.target }}
+          name: bins-${{ needs.build-artifacts.outputs.target }}
           path: dist
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -101,11 +101,11 @@ jobs:
           role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
           role-session-name: GitHubActionsSession
       - name: Upload layer to ${{ matrix.region }}
-        run: just deploy-extension release ${{ matrix.region }} ${{ needs.build.outputs.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
+        run: just deploy-extension release ${{ matrix.region }} ${{ needs.build-artifacts.outputs.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
   
   publish:
     name: Publish to GitHub Release
-    needs: [dist]
+    needs: [build-artifacts]
     runs-on: ubuntu-latest
     permissions:
       contents: write
