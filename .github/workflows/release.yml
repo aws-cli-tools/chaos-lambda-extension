@@ -101,8 +101,9 @@ jobs:
           aws-region: ${{ matrix.region }}
           role-to-assume: arn:aws:iam::871265522301:role/GitHub-Deploy-Layers-Role
           role-session-name: GitHubActionsSession
+      - uses: taiki-e/install-action@just
       - name: Upload layer to ${{ matrix.region }}
-        run: just deploy-extension release ${{ matrix.region }} ${{ matrix.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
+        run: set -e; just deploy-extension release ${{ matrix.region }} ${{ matrix.target }} | tee >(jq -r '.LayerArn, .Version' | xargs -I {} just apply-global-permission-to-layer {})
       
 
   update-layer-readme:

@@ -4,8 +4,8 @@
 
 🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 
-<!-- [![codecov](https://codecov.io/gh/aws-cli-tools/whoami/branch/main/graph/badge.svg?token=NW4955XIZT)](https://codecov.io/gh/aws-cli-tools/whoami)
-[![Actions Status](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/whoami/workflows/Code%20Gating/badge.svg?branch=main) -->
+[![codecov](https://codecov.io/gh/aws-cli-tools/chaos-lambda-extension/branch/main/graph/badge.svg)](https://codecov.io/gh/aws-cli-tools/chaos-lambda-extension)
+[![Actions Status](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)
 
 # lambda-chaos-extension
 
@@ -52,29 +52,11 @@ The extension is controled via environment variables
 ```
 * `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A number between 0 to 1 that determined the probability of injecting the fault. Default it `0.9`
 
-<!-- ## Deployment
+## Deployment
 ### Public 
-The chaos extension is publicly available using `arn:aasee`. You can pull the latest version for your region easily by running
-```bash
-aws --region
-```
-You can se the extension using the console or your preferred IAC solution. You can see how to do it in AWS SAM n the `example` folder example.
+The chaos extension is publicly available. The latest versions of the layer are available in [LAYERS.md](LAYERS.ms)
+You can use the extension using the console or your preferred IAC solution. You can see how to do it in AWS SAM in the `example` folder example.
  
-
-To build and deploy your application for the first time, run the following in your shell:
-
-```bash
-sam build --use-container
-sam deploy --guided
-```
-
-## Chaos Tests
-
-Browse the API Gateway URL or curl it from command line for couple of times. 
-
-- The normal results are status 200, {"message": "hello world"}. 
-- 50% of the responses are status 500, {"message": "hello, Chaos!!!"}
-- 10% of the responses are status 502, {"message": "Internal server error"}.  -->
 
 ## Running locally
 * You can always use `cargo` to manage the build and tests.
