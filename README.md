@@ -2,7 +2,7 @@
 [![Actions Status](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)
 [![Actions Status](https://img.shields.io/badge/built%20with%20rust-red?logo=rust)](https://img.shields.io/badge/built%20with%20rust-red?logo=rust)
 
-# Chaos Extension
+# Chaos Extension - Seamless, Universal & Lightning-Fast
 
 <p align="center">
   <img src="https://github.com/aws-cli-tools/chaos-lambda-extension/assets/110536677/0d7586d8-7f0f-489b-a959-20db77594468" alt="A futuristic neon lit chaos" width="256" height="256">
@@ -28,6 +28,11 @@ The extension can inject two types of faults based on the configuration:
 
 1. Induce latency.
 2. Modify function response.
+
+## Main Benefits
+* 🔄 Seamless Integration: Requires no code changes. Simply plug and play!
+* 🌐 Universal Compatibility: Completely agnostic to the Lambda runtime. Flexibility at its finest!
+* 🚀 Blazing Fast: Written in Rust for peak performance. Zero impact on your Lambda's behavior when turned off, ensuring smooth operations.
 
 ## Configuration
 
