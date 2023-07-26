@@ -1,11 +1,6 @@
-**Work In Progress**
-
-**Not ready yet**
-
-🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
-
 [![codecov](https://codecov.io/gh/aws-cli-tools/chaos-lambda-extension/branch/main/graph/badge.svg)](https://codecov.io/gh/aws-cli-tools/chaos-lambda-extension)
 [![Actions Status](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)
+[![Actions Status](https://img.shields.io/badge/built%20with%20rust-red?logo=rust)](https://img.shields.io/badge/built%20with%20rust-red?logo=rust)
 
 # lambda-chaos-extension
 
