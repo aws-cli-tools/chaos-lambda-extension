@@ -118,6 +118,9 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 0 # To get all tags
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -132,7 +135,6 @@ jobs:
         with:
           commit_message: Update LAYERS.md
           file_pattern: LAYERS.md
-          ref: master
 
   publish:
     name: Publish to GitHub Release
