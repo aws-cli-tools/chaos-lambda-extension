@@ -56,9 +56,18 @@ pub async fn get_next_invocation() -> impl IntoResponse {
         .unwrap_or("900".to_string())
         .parse()
         .unwrap_or(15 * 60);
-    if enable_timeout && rand::random::<f64>() < timeout_probability {
-        info!("Added latency to Lambda - {} seconds", latency);
-        sleep(Duration::from_secs(latency));
+    let probability = rand::random::<f64>();
+    if enable_timeout {
+        info!("Latency injection enabled");
+        info!(
+            "Chosen probability - {}, configured probability - {}",
+            probability, timeout_probability
+        );
+
+        if probability < timeout_probability {
+            info!("Added latency to Lambda - {} seconds", latency);
+            sleep(Duration::from_secs(latency));
+        }
     }
 
     let mut headers = resp.headers().clone();
@@ -92,14 +101,21 @@ pub async fn post_invoke_response(
         .unwrap_or(0.9);
 
     let probability = rand::random::<f64>();
-    info!(
-        "Chosen probability - {}, configured probability - {}",
-        probability, response_probability
-    );
+
     let mut body = data;
-    if enable_change_reponse && probability < response_probability {
-        body =
-            std::env::var(DEFAULT_RESPONSE_ENV_NAME).unwrap_or(DEFAULT_RESPONSE_BODY.to_string());
+
+    if enable_change_reponse {
+        info!("Change response injection enabled");
+        info!(
+            "Chosen probability - {}, configured probability - {}",
+            probability, response_probability
+        );
+
+        if probability < response_probability {
+            body = std::env::var(DEFAULT_RESPONSE_ENV_NAME)
+                .unwrap_or(DEFAULT_RESPONSE_BODY.to_string());
+            info!("Changing response body - {}", &body);
+        }
     }
 
     let resp = reqwest::Client::new()

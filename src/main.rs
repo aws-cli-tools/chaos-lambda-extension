@@ -2,6 +2,7 @@ use lambda_extension::{service_fn, Error, Extension, LambdaEvent};
 
 use tokio::task;
 use tracing::{debug, info};
+use tracing_subscriber::EnvFilter;
 
 mod routes;
 
@@ -9,7 +10,7 @@ mod routes;
 async fn main() -> Result<(), Error> {
     // required to enable CloudWatch error logging by the runtime
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_env_filter(EnvFilter::from_default_env())
         // disable printing the name of the module in every log line.
         .with_target(false)
         // disabling time is handy because CloudWatch will add the ingestion time.

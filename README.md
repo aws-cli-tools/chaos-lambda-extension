@@ -65,9 +65,18 @@ Additionally, when incorporating the layer, remember to set an environment varia
 See the AWS SAM usage example in the `examples` directory.
 
 ## Running Locally
+### Unit testing
 * Utilize `cargo` for build and test management.
 * We employ [`just`](https://github.com/casey/just) as a command runner.
 * Execute `just gate` to run all checks locally.
+### Deployment for testing
+* Use `just deploy-debug-extension` to deploy a debug version of the extension to `us-east-1` using `x86_64-unknown-linux-gnu` as target.
+* Use `just deploy-release-extension` to deploy a release version of the extension to `us-east-1` using `x86_64-unknown-linux-gnu` as target.
+
+These `just` tasks also accept arguments to change the region and the target. Use `just --list` to get more details about the various deploy options.
+
+### Logs
+* Use `RUST_LOG` environment variable to change the extension log level. Default is `error`.
 
 ## Contributing
 For contribution guidelines, see our [CONTRIBUTION](CONTRIBUTION.md) page.
