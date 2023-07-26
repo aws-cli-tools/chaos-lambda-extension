@@ -1,13 +1,12 @@
-**Work In Progress**
-
-**Not ready yet**
-
-🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
-
 [![codecov](https://codecov.io/gh/aws-cli-tools/chaos-lambda-extension/branch/main/graph/badge.svg)](https://codecov.io/gh/aws-cli-tools/chaos-lambda-extension)
 [![Actions Status](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)](https://github.com/aws-cli-tools/chaos-lambda-extension/workflows/Code%20Gating/badge.svg?branch=main)
+[![Actions Status](https://img.shields.io/badge/built%20with%20rust-red?logo=rust)](https://img.shields.io/badge/built%20with%20rust-red?logo=rust)
 
-# lambda-chaos-extension
+# Chaos Extension
+
+<p align="center">
+  <img src="https://github.com/aws-cli-tools/chaos-lambda-extension/assets/110536677/0d7586d8-7f0f-489b-a959-20db77594468" alt="A futuristic neon lit chaos" width="256" height="256">
+</p>
 
 The `lambda-chaos-extension` allows you to inject faults into Lambda functions without modifying the function code. Unlike previous chaos implementations that required tight coupling with the Lambda runtime, this extension is runtime-agnostic. It can operate with any runtime that utilizes Amazon Linux 2. Currently, the supported runtimes include:
 
@@ -57,7 +56,6 @@ Control the extension via environment variables:
 ## Deployment
 The chaos extension is publicly available as a layer. For the latest versions of the layer, refer to [LAYERS.md](LAYERS.md). Incorporate the layer using the AWS Console, or your preferred IAC solution. 
 Additionally, when incorporating the layer, remember to set an environment variable in your Lambda. This variable should be named `AWS_LAMBDA_EXEC_WRAPPER` and have `/opt/bootstrap` as its value.
-
 
 See the AWS SAM usage example in the `examples` directory.
 

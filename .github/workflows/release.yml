@@ -119,7 +119,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
         with:
-          ref: master
+          ref: main
           fetch-depth: 0 # To get all tags
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
