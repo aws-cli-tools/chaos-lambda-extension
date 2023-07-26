@@ -121,6 +121,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0 # To get all tags
+          token: {{ secrets.UPDATE_LAYERS_SECRET }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
