@@ -17,12 +17,17 @@ async fn main() -> Result<(), Error> {
         .without_time()
         .init();
 
-    let app = routes::router();
-
+    let state = routes::AppState {
+        runtime_api_address: std::env::var("AWS_LAMBDA_RUNTIME_API")
+            .expect("Missing AWS_LAMBDA_RUNTIME_API!"),
+    };
     debug!(
         "Pulling AWS_LAMBDA_RUNTIME_API end point - {}",
-        *routes::AWS_LAMBDA_RUNTIME_API
+        state.runtime_api_address
     );
+
+    let app = routes::router(state);
+
     info!("Chaos extension is enabled");
     // run it
     let server =

@@ -15,5 +15,10 @@
   ],
   "onCreateCommand": {
     "start-sccache": "sccache --start-server"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["skellock.just"]
+    }
   }
 }

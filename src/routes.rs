@@ -1,5 +1,5 @@
 use axum::{
-    extract::Path,
+    extract::{Path, State},
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
     routing::{get, post},
@@ -13,14 +13,17 @@ use std::{thread::sleep, time::Duration};
 use tracing::{error, info};
 
 lazy_static! {
-    pub static ref AWS_LAMBDA_RUNTIME_API: String =
-        std::env::var("AWS_LAMBDA_RUNTIME_API").expect("Missing AWS_LAMBDA_RUNTIME_API!");
     pub static ref DEFAULT_RESPONSE_BODY: Value = json!({
     "statusCode": 500,
     "body": {
         "message": "hello, Chaos!!!"
     }
     });
+}
+
+#[derive(Clone)]
+pub struct AppState {
+    pub runtime_api_address: String,
 }
 
 const ENABLE_LATENCY_ENV_NAME: &str = "CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY";
@@ -32,11 +35,11 @@ const ENABLE_CHANGE_REPONSE_BODY_ENV_NAME: &str =
 const REPONSE_PROBABILITY_ENV_NAME: &str = "CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY";
 const DEFAULT_RESPONSE_ENV_NAME: &str = "CHAOS_EXTENSION__RESPONSE__DEFAULT_RESPONSE";
 
-pub async fn get_next_invocation() -> impl IntoResponse {
+pub async fn get_next_invocation(State(state): State<AppState>) -> impl IntoResponse {
     info!("get_next_invocation was invoked");
     let resp = reqwest::get(format!(
         "http://{}/2018-06-01/runtime/invocation/next",
-        *AWS_LAMBDA_RUNTIME_API
+        state.runtime_api_address
     ))
     .await
     .unwrap();
@@ -82,6 +85,7 @@ pub async fn get_next_invocation() -> impl IntoResponse {
 }
 
 pub async fn post_invoke_response(
+    State(state): State<AppState>,
     Path(request_id): Path<String>,
     data: String,
 ) -> impl IntoResponse {
@@ -121,7 +125,7 @@ pub async fn post_invoke_response(
     let resp = reqwest::Client::new()
         .post(format!(
             "http://{}/2018-06-01/runtime/invocation/{}/response",
-            *AWS_LAMBDA_RUNTIME_API, request_id
+            state.runtime_api_address, request_id
         ))
         .body(body.clone())
         .send()
@@ -135,12 +139,16 @@ pub async fn post_invoke_response(
     (status, headers, resp.text().await.unwrap())
 }
 
-pub async fn post_initialization_error(headers: HeaderMap, body: String) -> impl IntoResponse {
+pub async fn post_initialization_error(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    body: String,
+) -> impl IntoResponse {
     info!("post_initialization_error was invoked");
     let resp = reqwest::Client::new()
         .post(format!(
             "http://{}/2018-06-01/runtime/init/error",
-            *AWS_LAMBDA_RUNTIME_API
+            state.runtime_api_address
         ))
         .body(body.clone())
         .headers(headers)
@@ -156,6 +164,7 @@ pub async fn post_initialization_error(headers: HeaderMap, body: String) -> impl
 }
 
 pub async fn post_invoke_error(
+    State(state): State<AppState>,
     Path(request_id): Path<String>,
     headers: HeaderMap,
     body: String,
@@ -164,7 +173,7 @@ pub async fn post_invoke_error(
     let resp = reqwest::Client::new()
         .post(format!(
             "http://{}/2018-06-01/runtime/invocation/{}/error",
-            *AWS_LAMBDA_RUNTIME_API, request_id
+            state.runtime_api_address, request_id
         ))
         .body(body.clone())
         .headers(headers)
@@ -179,7 +188,7 @@ pub async fn post_invoke_error(
     (status, headers, body)
 }
 
-pub fn router() -> Router {
+pub fn router(state: AppState) -> Router {
     Router::new()
         .route(
             "/2018-06-01/runtime/invocation/next",
@@ -197,6 +206,7 @@ pub fn router() -> Router {
             "/2018-06-01/runtime/invocation/:request_id/error",
             post(post_invoke_error),
         )
+        .with_state(state)
 }
 fn str_to_bool(input: &str, default: bool) -> bool {
     match input.to_lowercase().as_str() {
@@ -231,15 +241,13 @@ mod tests {
             .respond_with(ResponseTemplate::new(200))
             .mount(&mock_server)
             .await;
-        let app = router();
+        let app = router(AppState {
+            runtime_api_address: mock_server.uri().replace("http://", ""),
+        });
 
         env::set_var(ENABLE_LATENCY_ENV_NAME, "true");
         env::set_var(LATENCY_PROBABILITY_ENV_NAME, "1.0");
         env::set_var(LATENCY_VALUE_ENV_NAME, "2");
-        env::set_var(
-            "AWS_LAMBDA_RUNTIME_API",
-            mock_server.uri().replace("http://", ""),
-        );
 
         let start = Instant::now();
         let response = app
@@ -269,14 +277,12 @@ mod tests {
             .respond_with(ResponseTemplate::new(200))
             .mount(&mock_server)
             .await;
-        let app = router();
+        let app = router(AppState {
+            runtime_api_address: mock_server.uri().replace("http://", ""),
+        });
 
         env::set_var(ENABLE_CHANGE_REPONSE_BODY_ENV_NAME, "true");
         env::set_var(REPONSE_PROBABILITY_ENV_NAME, "1.0");
-        env::set_var(
-            "AWS_LAMBDA_RUNTIME_API",
-            mock_server.uri().replace("http://", ""),
-        );
 
         let response = app
             .oneshot(
