@@ -50,9 +50,7 @@ Control the extension via environment variables:
 ```json
 {
     "statusCode": 500,
-    "body": {
-        "message": "hello, Chaos!!!"
-    }
+    "body": "hello, Chaos!!!"
 }
 ```
 * `CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY` - A probability value between 0 and 1 that determines the likelihood of fault injection. Default is `0.9`.
