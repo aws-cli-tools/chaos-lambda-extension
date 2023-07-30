@@ -15,9 +15,7 @@ use tracing::{error, info};
 lazy_static! {
     pub static ref DEFAULT_RESPONSE_BODY: Value = json!({
     "statusCode": 500,
-    "body": {
-        "message": "hello, Chaos!!!"
-    }
+    "body": "hello, Chaos!!!"
     });
 }
 
