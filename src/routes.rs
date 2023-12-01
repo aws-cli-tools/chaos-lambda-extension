@@ -28,7 +28,7 @@ const ENABLE_LATENCY_ENV_NAME: &str = "CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY";
 const LATENCY_PROBABILITY_ENV_NAME: &str = "CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY";
 const LATENCY_VALUE_ENV_NAME: &str = "CHAOS_EXTENSION__LAMBDA__LATENCY_VALUE";
 
-const ENABLE_CHANGE_REPONSE_BODY_ENV_NAME: &str =
+const ENABLE_CHANGE_RESPONSE_BODY_ENV_NAME: &str =
     "CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_RESPONSE_BODY";
 const REPONSE_PROBABILITY_ENV_NAME: &str = "CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY";
 const DEFAULT_RESPONSE_ENV_NAME: &str = "CHAOS_EXTENSION__RESPONSE__DEFAULT_RESPONSE";
@@ -91,7 +91,7 @@ pub async fn post_invoke_response(
     // Send the request
 
     let enable_change_reponse = str_to_bool(
-        std::env::var(ENABLE_CHANGE_REPONSE_BODY_ENV_NAME)
+        std::env::var(ENABLE_CHANGE_RESPONSE_BODY_ENV_NAME)
             .unwrap_or("false".to_string())
             .as_str(),
         false,
@@ -279,7 +279,7 @@ mod tests {
             runtime_api_address: mock_server.uri().replace("http://", ""),
         });
 
-        env::set_var(ENABLE_CHANGE_REPONSE_BODY_ENV_NAME, "true");
+        env::set_var(ENABLE_CHANGE_RESPONSE_BODY_ENV_NAME, "true");
         env::set_var(REPONSE_PROBABILITY_ENV_NAME, "1.0");
 
         let response = app
